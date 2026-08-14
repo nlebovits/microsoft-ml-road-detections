@@ -1,0 +1,225 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
+    "https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json"
+  ],
+  "id": "road-detections",
+  "title": "Microsoft ML Road Detections",
+  "description": "Road geometries that Microsoft detected from Bing Maps aerial imagery with a convolutional neural network, republished as country-partitioned GeoParquet. Microsoft states it has detected 54.2M km of roads worldwide and distributes them as nineteen zipped TSV files of GeoJSON at [microsoft/RoadDetections](https://github.com/microsoft/RoadDetections); this collection carries the same roads in a form a query engine can read directly. Each row is one road segment with an approximate width in metres. Coverage is worldwide except mainland China, Japan, and Korea, which Microsoft does not process, citing aerial imagery restrictions. Read every partition at once with the glob `https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet`, or one country by naming its directory. The partition key is Microsoft's own region code, which is close to but not the same as ISO 3166-1 alpha-3; see [AGENTS.md](AGENTS.md) before joining on it.",
+  "license": "ODbL-1.0",
+  "keywords": [
+    "roads",
+    "transportation",
+    "road network",
+    "machine learning",
+    "remote sensing",
+    "bing maps",
+    "global"
+  ],
+  "updated": "2026-08-14T00:00:00Z",
+  "providers": [
+    {
+      "name": "Microsoft",
+      "description": "Detected the roads from Bing Maps aerial imagery and publishes the source dataset under ODbL.",
+      "url": "https://github.com/microsoft/RoadDetections",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Nissim Lebovits",
+      "description": "Converted the source TSV/GeoJSON releases to partitioned GeoParquet and maintains this catalog.",
+      "email": "nissim.lebovits@radiant.earth",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Radiant Earth",
+      "description": "Publishes and hosts this cloud-native mirror through Source Cooperative.",
+      "url": "https://radiant.earth",
+      "email": "nissim.lebovits@radiant.earth",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -179.821482896805,
+          -55.8876414630905,
+          179.915510416031,
+          72.0121927138482
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2020-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "partition:scheme": "hive",
+  "partition:strategy": "attribute",
+  "partition:keys": [
+    {
+      "name": "country",
+      "type": "string",
+      "description": "Microsoft region code, one GeoParquet file per code. Hive-style directory naming, so a query engine can prune on it without reading any footers."
+    }
+  ],
+  "partition:file_count": 235,
+  "partition:glob": "https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet",
+  "table:row_count": 256555010,
+  "table:primary_geometry": "geometry",
+  "table:columns": [
+    {
+      "name": "country",
+      "type": "string",
+      "description": "Microsoft's region code for the partition. Mostly ISO 3166-1 alpha-3, but not reliably so: XKS is Kosovo, XSA is Saba, XSE is Sint Eustatius, XXG is the Gaza Strip, XXH is the Golan Heights, and XXW is the West Bank. BES here means Bonaire alone, where ISO 3166-1 assigns BES to Bonaire, Sint Eustatius and Saba together. Codes are defined in Microsoft's AlphaCodeToRegionName.tsv."
+    },
+    {
+      "name": "width_meters",
+      "type": "double",
+      "description": "Microsoft calls this WidthMeters and documents it only as 'approximate width of the road in meters'. How it is derived is not documented upstream. Observed range is 0.04 to 119.28 m, with a median of 10.44 m."
+    },
+    {
+      "name": "geometry_type",
+      "type": "string",
+      "description": "Constant 'LineString' in all 256,555,010 rows. Redundant with the GeoParquet geometry metadata and retained only because the original conversion wrote it. Note the value is mixed case, not 'LINESTRING'."
+    },
+    {
+      "name": "geometry",
+      "type": "binary",
+      "description": "The road geometry, WKB LineString in OGC:CRS84. Microsoft does not state whether these are road centrelines, so this catalog does not claim they are."
+    },
+    {
+      "name": "bbox",
+      "type": "struct<xmin: double, ymin: double, xmax: double, ymax: double>",
+      "description": "GeoParquet 1.1 covering column. Filter on bbox.xmin/ymin/xmax/ymax before touching geometry; it is what makes a spatial query skip row groups."
+    }
+  ],
+  "assets": {
+    "visual": {
+      "href": "https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/road-detections.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Vector tiles, zoom 0 to 10",
+      "description": "Overview tiles for browsing. Built at zoom 0 to 10 with feature dropping, so they are not a substitute for the GeoParquet at street level.",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 2808369737,
+      "file:checksum": "122083905e32ff38465ed724a3441862a0463da1166319dce0d13cd6858e743cbb3c"
+    },
+    "style": {
+      "href": "./styles/default.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Roads by width",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 1679,
+      "file:checksum": "12203af2148cc8098640c908223f0ef9b54eab6d0a4990de23e5f31ebf78246818e1",
+      "description": "Width classes at 8, 10, 12, 14 and 18 metres, which split the data into six roughly even groups holding 22.2, 20.7, 22.1, 18.6, 11.8 and 4.7 percent of segments. Greys carry the two narrowest classes, the local street fabric; orange to dark red carries everything 10 metres and wider, so arterials separate from the background at a glance. Line weight follows the same classes and grows with zoom."
+    },
+    "style-uniform": {
+      "href": "./styles/uniform.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Uniform hairline",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1124,
+      "file:checksum": "12204bec757e798846b28203bf6dda4800045523d28f958f4c4ce8787074cf7d5fd3",
+      "description": "Every segment in one colour at one weight, with no width encoding. Useful when the question is where roads were detected at all rather than how wide they are, and as a check on the detection footprint: coverage gaps read plainly here where the graduated style can hide them behind pale narrow-road colours."
+    },
+    "style-wide-roads": {
+      "href": "./styles/wide-roads.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Wide roads only",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1181,
+      "file:checksum": "1220eea37cf15c043f25f89be57071d619c2bb65a6e6b8eaaf90f0bed18c83bfba14",
+      "description": "The 11,982,624 segments at least 18 metres wide, 4.7 percent of the data and the 95th percentile of width. At continental zoom the full network renders as a solid mass, so this filter is what makes a wide view readable: what survives is the trunk network between cities rather than the street fabric inside them."
+    },
+    "legend": {
+      "href": "./legends/width.png",
+      "type": "image/png",
+      "title": "Road width classes",
+      "roles": [
+        "legend"
+      ],
+      "file:size": 12330,
+      "file:checksum": "12209c896b3f1a5863db71560c185389b2e7914495418302cc66943f2ef49d152d11"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview rendered with the default style. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 427739,
+      "file:checksum": "12203b2dcc69557b73bdc4836d67455210ab663a3d1069635074bdcbfbf61c120a3f"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Collection README"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Collection agent guide"
+    },
+    {
+      "rel": "license",
+      "href": "https://opendatacommons.org/licenses/odbl/",
+      "type": "text/html",
+      "title": "Open Data Commons Open Database License (ODbL) v1.0"
+    },
+    {
+      "rel": "via",
+      "href": "https://github.com/microsoft/RoadDetections",
+      "type": "text/html",
+      "title": "microsoft/RoadDetections, the upstream source"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/road-detections.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Vector tiles",
+      "pmtiles:layers": [
+        "road-detections"
+      ]
+    }
+  ]
+}

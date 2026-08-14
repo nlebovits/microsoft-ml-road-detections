@@ -13,9 +13,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 
 TESTS = [
-    "test_setup.py",       # delete this one once setup is done
     "test_links.py",
     "test_publish.py",
+    "test_upload_data.py",
+    "test_geoparquet.py",
+    "test_regen.py",
     "test_stac_valid.py",
     "test_conformance.py",
 ]

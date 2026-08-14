@@ -1,0 +1,4 @@
+collection	strategy	bbox	zoom	rank	verdict
+road-detections	B	-118.350925,33.672684,-116.944675,34.449337	10.0	0	pass
+road-detections(rejected B)	B	-97.379525,32.554572,-95.973275,33.341278	10.0	5	uniform texture at card size
+road-detections(rejected C)	B	4.178875,51.091525,5.585125,51.676605	10.0	4	too sparse, washes out

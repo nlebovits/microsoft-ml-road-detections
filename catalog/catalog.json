@@ -4,14 +4,49 @@
   "stac_extensions": [
     "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
   ],
-  "id": "example-catalog",
-  "title": "Example Catalog",
-  "description": "TODO(setup): one or two sentences saying what this catalog holds, who produced the data, and who it is for. A person and an agent both read this first.",
+  "id": "microsoft-ml-road-detections",
+  "title": "Microsoft ML Road Detections",
+  "description": "A cloud-native mirror of the road detections Microsoft mines from Bing Maps aerial imagery and publishes at [microsoft/RoadDetections](https://github.com/microsoft/RoadDetections). Microsoft distributes the data as nineteen zipped TSV files of GeoJSON, one per UN subregion. This catalog republishes the same roads as GeoParquet partitioned by country, so a reader can query one country, one bounding box, or the whole planet without downloading 67 GB first. Microsoft produces the data and licenses it under ODbL; this catalog only reformats and hosts it. Agents should start at the catalog agent guide, [AGENTS.md](AGENTS.md), which records the query recipes and the traps.",
+  "updated": "2026-08-14T00:00:00Z",
+  "providers": [
+    {
+      "name": "Microsoft",
+      "description": "Detected the roads from Bing Maps aerial imagery and publishes the source dataset.",
+      "url": "https://github.com/microsoft/RoadDetections",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Nissim Lebovits",
+      "description": "Converted the source TSV/GeoJSON releases to partitioned GeoParquet and maintains this catalog.",
+      "email": "nissim.lebovits@radiant.earth",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Radiant Earth",
+      "description": "Publishes and hosts this cloud-native mirror through Source Cooperative.",
+      "url": "https://radiant.earth",
+      "email": "nissim.lebovits@radiant.earth",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
   "links": [
     {
       "rel": "root",
       "href": "./catalog.json",
       "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./road-detections/collection.json",
+      "type": "application/json",
+      "title": "Microsoft ML Road Detections"
     },
     {
       "rel": "describedby",
@@ -24,6 +59,24 @@
       "href": "./AGENTS.md",
       "type": "text/markdown",
       "title": "Catalog agent guide"
+    },
+    {
+      "rel": "via",
+      "href": "https://github.com/microsoft/RoadDetections",
+      "type": "text/html",
+      "title": "microsoft/RoadDetections, the upstream source"
+    },
+    {
+      "rel": "vcs",
+      "href": "https://github.com/nlebovits/microsoft-ml-road-detections",
+      "type": "text/html",
+      "title": "Source repository"
+    },
+    {
+      "rel": "issues",
+      "href": "https://github.com/nlebovits/microsoft-ml-road-detections/issues",
+      "type": "text/html",
+      "title": "Issue tracker"
     }
   ]
 }

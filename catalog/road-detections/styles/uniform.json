@@ -1,0 +1,43 @@
+{
+  "version": 8,
+  "name": "Uniform hairline",
+  "description": "Every segment in one colour at one weight, with no width encoding. Useful when the question is where roads were detected at all rather than how wide they are, and as a check on the detection footprint: coverage gaps read plainly here where the graduated style can hide them behind pale narrow-road colours.",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../road-detections.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "road-detections-uniform",
+      "type": "line",
+      "source": "data",
+      "source-layer": "road-detections",
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": "#1a3d5c",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          2, 0.1,
+          6, 0.3,
+          10, 0.8,
+          14, 1.6
+        ],
+        "line-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          2, 0.4,
+          6, 0.6,
+          10, 0.8
+        ]
+      }
+    }
+  ]
+}

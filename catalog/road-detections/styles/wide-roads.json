@@ -1,0 +1,44 @@
+{
+  "version": 8,
+  "name": "Wide roads only",
+  "description": "The 11,982,624 segments at least 18 metres wide, 4.7 percent of the data and the 95th percentile of width. At continental zoom the full network renders as a solid mass, so this filter is what makes a wide view readable: what survives is the trunk network between cities rather than the street fabric inside them.",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../road-detections.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "road-detections-wide",
+      "type": "line",
+      "source": "data",
+      "source-layer": "road-detections",
+      "filter": [">=", ["get", "width_meters"], 18],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": "#7a2005",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          2, 0.3,
+          6, 0.8,
+          10, 2.0,
+          14, 4.5
+        ],
+        "line-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          2, 0.7,
+          6, 0.85,
+          10, 0.95
+        ]
+      }
+    }
+  ]
+}
