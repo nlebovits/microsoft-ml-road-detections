@@ -10,7 +10,7 @@
   ],
   "id": "road-detections",
   "title": "Microsoft ML Road Detections",
-  "description": "Road geometries that Microsoft detected from Bing Maps aerial imagery with a convolutional neural network, republished as country-partitioned GeoParquet. Microsoft states it has detected 54.2M km of roads worldwide and distributes them as nineteen zipped TSV files of GeoJSON at [microsoft/RoadDetections](https://github.com/microsoft/RoadDetections); this collection carries the same roads in a form a query engine can read directly. Each row is one road segment with an approximate width in metres. Coverage is worldwide except mainland China, Japan, and Korea, which Microsoft does not process, citing aerial imagery restrictions. Read every partition at once with the glob `https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet`, or one country by naming its directory. The partition key is Microsoft's own region code, which is close to but not the same as ISO 3166-1 alpha-3; see [AGENTS.md](AGENTS.md) before joining on it.",
+  "description": "Road geometries that Microsoft detected from Bing Maps aerial imagery with a convolutional neural network, republished as country-partitioned GeoParquet. Microsoft states it has detected 54.2M km of roads worldwide and distributes them as nineteen zipped TSV files of GeoJSON at [microsoft/RoadDetections](https://github.com/microsoft/RoadDetections); this collection carries the same roads in a form a query engine can read directly. Each row is one road segment with an approximate width in metres. Coverage is worldwide except mainland China, Japan, and Korea, which Microsoft does not process, citing aerial imagery restrictions. Read one country over https by naming its directory, or every partition at once with the `s3://` glob in `partition:glob`. The glob needs s3 rather than https because expanding it requires a listing; the bucket itself reads anonymously. The partition key is Microsoft's own region code, which is close to but not the same as ISO 3166-1 alpha-3; see [AGENTS.md](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/AGENTS.md) before joining on it.",
   "license": "ODbL-1.0",
   "keywords": [
     "roads",
@@ -80,7 +80,7 @@
     }
   ],
   "partition:file_count": 235,
-  "partition:glob": "https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet",
+  "partition:glob": "s3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet",
   "table:row_count": 256555010,
   "table:primary_geometry": "geometry",
   "table:columns": [
