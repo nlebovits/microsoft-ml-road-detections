@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Deliberately unpinned. A template that pins a validator version starts
+      # drifting the day it is created and every repo made from it inherits
+      # the stale pin. Once your catalog is real, pin here in your own repo.
+      - name: Install the validators
+        run: python -m pip install rashid stac-check
+
+      - name: Lint the tooling
+        run: |
+          python -m pip install pyflakes
+          pyflakes tools/*.py tests/*.py
+
+      - name: Catalog gates
+        run: python3 tests/run_all.py
