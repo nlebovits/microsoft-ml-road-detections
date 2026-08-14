@@ -17,6 +17,9 @@ Two notes on how this is wired:
 
 SKIPs when stac-check is not installed, so a clean checkout needs no setup.
 
+One crash is tolerated, and only one. See KNOWN_TOOL_DEFECT below and the
+"Advisory gate" section of docs/conformance.md.
+
 Run: python3 tests/test_stac_valid.py
 """
 import json
@@ -39,8 +42,44 @@ config = load_config()
 BASE = ROOT / config["publish_dir"]
 
 STAC_TYPES = {"Catalog", "Collection", "Feature"}
+
+# stac-validator crashes on every Portolan Collection, and the crash is its
+# own, not this catalog's.
+#
+# The Portolan profile schema declares draft-07, where `items` may be an array
+# of schemas (tuple validation). Its `valid_bbox` definition uses exactly that,
+# once for a 4-element bbox and once for 6. stac-validator ignores the declared
+# draft and pushes every schema through Draft202012Validator, where `items`
+# must be a single schema. `referencing` then calls `.get("$id")` on the list
+# and raises AttributeError.
+#
+# Verified on 2026-08-14 with stac-check 1.14.0, the current release:
+#   - jsonschema.validate() against the same schema PASSES this collection
+#   - the spec's own reference collection and its vector-partitioned-collection
+#     example both crash identically
+#   - catalog.json passes, because only a Collection reaches valid_bbox
+#
+# So it is tolerated here, narrowly: this signature only, and only when the
+# document independently validates against the schema (asserted below). Every
+# other error still fails the build.
+KNOWN_TOOL_DEFECT = "'list' object has no attribute 'get'"
+KNOWN_TOOL_DEFECT_SCHEMA = "schemas.portolan-sdi.org/portolan/"
+
 errors: list[str] = []
+tolerated: list[str] = []
 checked = 0
+
+
+def independently_valid(doc: dict, schema_url: str) -> bool:
+    """Validate against the same schema without stac-validator in the way."""
+    try:
+        import jsonschema
+        import requests
+
+        jsonschema.validate(doc, requests.get(schema_url, timeout=30).json())
+        return True
+    except Exception:
+        return False
 
 for path in sorted(BASE.rglob("*.json")):
     rel = path.relative_to(BASE)
@@ -59,13 +98,31 @@ for path in sorted(BASE.rglob("*.json")):
     checked += 1
     linter = Linter(str(path), recursive=False)
     if not linter.valid_stac:
-        errors.append(f"{rel}: {linter.error_msg}")
+        message = linter.error_msg or ""
+        portolan_schema = next(
+            (e for e in doc.get("stac_extensions", []) if KNOWN_TOOL_DEFECT_SCHEMA in e),
+            None,
+        )
+        if (
+            KNOWN_TOOL_DEFECT in message
+            and portolan_schema
+            and independently_valid(doc, portolan_schema)
+        ):
+            tolerated.append(f"{rel}: stac-validator crashed on the Portolan schema")
+            continue
+        errors.append(f"{rel}: {message}")
         continue
     for note in linter.best_practices_msg[1:]:
         if note.strip():
             print(f"note   {rel}: {note.strip()}")
 
+for line in tolerated:
+    print(f"known  {line}")
+    print("       stac-validator defect, not a metadata defect; the document")
+    print("       validates against the same schema directly. See the comment")
+    print("       in this file and docs/conformance.md.")
+
 if errors:
     print("\n".join(f"error  {e}" for e in errors))
     raise SystemExit(1)
-print(f"OK: {checked} STAC object(s) valid")
+print(f"OK: {checked} STAC object(s) valid ({len(tolerated)} known tool defect(s))")

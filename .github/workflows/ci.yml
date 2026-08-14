@@ -18,11 +18,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Deliberately unpinned. A template that pins a validator version starts
-      # drifting the day it is created and every repo made from it inherits
-      # the stale pin. Once your catalog is real, pin here in your own repo.
+      # Pinned, as the template advises once a catalog is real. Conformance is
+      # a claim about a specific validator, so an unpinned one means CI can go
+      # from green to red without this repository changing. Bump deliberately.
       - name: Install the validators
-        run: python -m pip install rashid stac-check
+        run: python -m pip install 'rashid==0.1.5' stac-check
 
       - name: Lint the tooling
         run: |

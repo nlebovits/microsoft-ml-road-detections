@@ -1,0 +1,55 @@
+# Microsoft ML Road Detections
+
+> A cloud-native mirror of Microsoft's ML road detections: 256,555,010 road segments detected from Bing Maps aerial imagery, as GeoParquet partitioned into 235 country files. Microsoft produces the data and licenses it under ODbL; this catalog reformats and hosts it, and changes nothing about it.
+
+One collection, `road-detections`. Each row is one road segment: a WKB LineString in OGC:CRS84 plus
+`width_meters`, an approximate width. There are no dates, no road classes, and no confidence scores.
+
+Read every partition with this glob:
+
+```
+https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
+```
+
+Name one country directory to read a single file instead of all 235. The full glob is 12 GB.
+
+Four things cause wrong answers, and all four are documented with evidence in the collection agent
+guide:
+
+- The `country` column is Microsoft's own code list, not ISO 3166-1 alpha-3. `BES` means Bonaire
+  alone, where ISO assigns it to Bonaire, Sint Eustatius and Saba together; the latter two appear
+  separately as `XSA` and `XSE`. Joining on `BES` double-counts them.
+- DuckDB's `ST_Length_Spheroid` is wrong on this data in versions 1.4.1 and 1.5.5. It returns `NaN`
+  for some countries and silently wrong finite values for others.
+- Coverage excludes mainland China, Japan, and Korea by design, plus parts of Switzerland and the
+  United Kingdom. Absence of roads here is not evidence of absence of roads.
+- This is not an OpenStreetMap difference layer, despite a pipeline stage that reads like one.
+  Central Berlin, exhaustively mapped in OSM, holds 2,589 segments. Treat it as all detections, and
+  compute any OSM difference yourself.
+
+Filter on the `bbox` covering column rather than on `geometry`. Rows are Hilbert-ordered and row
+groups hold at most 100,000 rows, so a `bbox` predicate skips row groups while a geometry predicate
+decodes everything first.
+
+## Docs
+
+- [Catalog README](https://source.coop/nlebovits/microsoft-ml-road-detections/README.md): what this catalog is, the license, and the ODbL attribution notice it requires.
+- [Catalog agent guide](https://source.coop/nlebovits/microsoft-ml-road-detections/AGENTS.md): structure and access paths.
+- [Collection README](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/README.md): what the detections are, how Microsoft produced them, coverage, schema, vintage, and limitations.
+- [Collection agent guide](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/AGENTS.md): tested queries with their answers inlined, and the traps in full.
+
+## Metadata
+
+- [catalog.json](https://data.source.coop/nlebovits/microsoft-ml-road-detections/catalog.json)
+- [collection.json](https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/collection.json): schema via `table:columns`, extent, providers, and `partition:glob`.
+
+## Upstream
+
+- [microsoft/RoadDetections](https://github.com/microsoft/RoadDetections): the source dataset, drop `2025.04.28`.
+- [AlphaCodeToRegionName.tsv](https://raw.githubusercontent.com/microsoft/RoadDetections/main/AlphaCodeToRegionName.tsv): Microsoft's country code list. Note it still lists Åland as `ALI` where the data correctly uses `ALA`.
+- [ODbL](https://opendatacommons.org/licenses/odbl/): the license, which is share-alike.
+
+## Maintenance
+
+- [Catalog repository](https://github.com/nlebovits/microsoft-ml-road-detections): metadata, build tooling, and CI.
+- [Issue tracker](https://github.com/nlebovits/microsoft-ml-road-detections/issues): for problems with this mirror. Problems with the road data itself belong upstream.
