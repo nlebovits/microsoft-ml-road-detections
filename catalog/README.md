@@ -12,7 +12,7 @@ One collection:
 
 | Collection | What it holds |
 |---|---|
-| [road-detections](road-detections/) | 256,555,010 road segments in 235 country partitions, worldwide |
+| [road-detections](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/README.md) | 256,555,010 road segments in 235 country partitions, worldwide |
 
 ## Provenance
 
@@ -25,7 +25,7 @@ GeoParquet in October 2025. If Microsoft publishes a newer drop, this mirror wil
 re-synced; the `updated` field on the catalog and the collection records the last sync.
 
 For what the detections are, how they were produced, what they do not cover, and the traps in the
-country codes, read the [collection README](road-detections/README.md).
+country codes, read the [collection README](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/README.md).
 
 ## License
 
@@ -53,9 +53,18 @@ Every partition, read as one table:
 ```sql
 INSTALL spatial; LOAD spatial; INSTALL httpfs; LOAD httpfs;
 
+-- The glob needs s3://, because expanding it requires a listing and plain HTTP
+-- cannot list. The bucket reads anonymously; path style is required because the
+-- bucket name contains dots.
+CREATE OR REPLACE SECRET source_coop (
+  TYPE s3, PROVIDER config, KEY_ID '', SECRET '',
+  REGION 'us-west-2', URL_STYLE 'path',
+  ENDPOINT 's3.us-west-2.amazonaws.com'
+);
+
 SELECT count(*)
 FROM read_parquet(
-  'https://data.source.coop/nlebovits/microsoft-ml-road-detections/'
+  's3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/'
   || 'road-detections/by_country/country=*/*.parquet'
 );
 -- 256555010
@@ -72,7 +81,7 @@ FROM read_parquet(
 LIMIT 10;
 ```
 
-Agents should start at [AGENTS.md](AGENTS.md), which carries the tested query recipes, the join
+Agents should start at [AGENTS.md](https://source.coop/nlebovits/microsoft-ml-road-detections/AGENTS.md), which carries the tested query recipes, the join
 keys, and the quirks that otherwise produce confident wrong answers.
 
 ## Maintenance

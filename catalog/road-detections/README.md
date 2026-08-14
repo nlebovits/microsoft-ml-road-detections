@@ -166,7 +166,7 @@ WHERE bbox.xmin > 4.85 AND bbox.xmax < 4.95
 ```
 
 More recipes, including the whole-planet glob and the traps that produce wrong answers, are in
-[AGENTS.md](AGENTS.md).
+[AGENTS.md](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/AGENTS.md).
 
 ## Derived Figures
 
@@ -182,7 +182,7 @@ was lost in conversion.
 The method was validated against an independent Vincenty implementation, which agreed to within 0.2%
 on sampled geometries. It is computed from WKB directly rather than with DuckDB's
 `ST_Length_Spheroid`, which is wrong on this data in both DuckDB 1.4.1 and 1.5.5: it returns `NaN`
-for some countries and silently wrong finite values for others. [AGENTS.md](AGENTS.md) carries the
+for some countries and silently wrong finite values for others. [AGENTS.md](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/AGENTS.md) carries the
 query and the evidence.
 
 ## License

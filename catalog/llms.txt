@@ -8,8 +8,13 @@ One collection, `road-detections`. Each row is one road segment: a WKB LineStrin
 Read every partition with this glob:
 
 ```
-https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
+s3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
 ```
+
+The glob must be `s3://`, not `https://`: expanding it requires a listing, which plain HTTP
+cannot do. The bucket reads anonymously, but DuckDB needs an S3 secret with `URL_STYLE 'path'`
+because the bucket name contains dots. Reading one country needs no glob and no setup, so
+`https://.../road-detections/by_country/country=NLD/NLD.parquet` works directly.
 
 Name one country directory to read a single file instead of all 235. The full glob is 12 GB.
 

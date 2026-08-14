@@ -18,11 +18,14 @@ There is **no collection-level `data` asset**. This is a partitioned collection,
 is `partition:glob` on `collection.json`:
 
 ```
-https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
+s3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
 ```
 
-Name a single country directory to read one file instead of 235. That is almost always what you
-want; the whole glob is 12 GB.
+**The glob is `s3://`, not `https://`, and that is not interchangeable.** Expanding a glob needs a
+listing, which plain HTTP does not provide: an `https://` glob is sent literally and returns 404.
+`PORTO-FMT-020` exempts `partition:glob` from the https-only rule for this reason.
+
+Reading one country needs no glob, so plain `https://` works with no setup at all:
 
 ```sql
 INSTALL spatial; LOAD spatial; INSTALL httpfs; LOAD httpfs;
@@ -35,12 +38,26 @@ FROM read_parquet(
 -- 263971
 ```
 
-Counting across every partition reads footers only, so it is cheap even over HTTP:
+That is almost always what you want. The whole glob is 12 GB.
+
+To read every partition, declare an anonymous S3 secret first. The bucket needs no credentials, but
+it does need path-style addressing, because the bucket name contains dots and virtual-host
+addressing then fails TLS verification:
+
+```sql
+CREATE OR REPLACE SECRET source_coop (
+  TYPE s3, PROVIDER config, KEY_ID '', SECRET '',
+  REGION 'us-west-2', URL_STYLE 'path',
+  ENDPOINT 's3.us-west-2.amazonaws.com'
+);
+```
+
+Counting across every partition then reads footers only, so it stays cheap:
 
 ```sql
 SELECT count(*)
 FROM read_parquet(
-  'https://data.source.coop/nlebovits/microsoft-ml-road-detections/'
+  's3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/'
   || 'road-detections/by_country/country=*/*.parquet'
 );
 -- 256555010
@@ -52,7 +69,7 @@ column in every file. They always agree; this was checked across all 235 files.
 ```sql
 SELECT country, count(*) AS segments
 FROM read_parquet(
-  'https://data.source.coop/nlebovits/microsoft-ml-road-detections/'
+  's3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/'
   || 'road-detections/by_country/country=*/*.parquet'
 )
 GROUP BY country ORDER BY segments DESC LIMIT 5;
@@ -117,7 +134,7 @@ separately. All seven exist in the data:
 ```sql
 SELECT country, count(*) AS segments
 FROM read_parquet(
-  'https://data.source.coop/nlebovits/microsoft-ml-road-detections/'
+  's3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/'
   || 'road-detections/by_country/country=*/*.parquet'
 )
 WHERE country IN ('XKS','XSA','XSE','XXG','XXH','XXW','BES')

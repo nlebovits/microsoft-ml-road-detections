@@ -20,7 +20,7 @@ Start at `catalog.json`, follow the `child` link to `road-detections/collection.
 `partition:glob` from it. That is the bulk-access path.
 
 ```
-https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
+s3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet
 ```
 
 **There is no collection-level `data` asset.** A partitioned collection declares its access path
@@ -44,7 +44,7 @@ programmatically gives HTML.
 ## Where The Detail Lives
 
 This catalog holds one dataset, so the substance is one level down. Before querying, read
-[road-detections/AGENTS.md](road-detections/AGENTS.md). It carries tested queries with their answers
+[road-detections/AGENTS.md](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/AGENTS.md). It carries tested queries with their answers
 inlined, and four traps that produce confident wrong answers:
 
 - the `country` column is not ISO 3166-1 alpha-3, and `BES` in particular means something narrower

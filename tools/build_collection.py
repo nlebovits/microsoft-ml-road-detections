@@ -35,6 +35,16 @@ OUTPUT = COLLECTION_DIR / "collection.json"
 PUBLIC_BASE = "https://data.source.coop/nlebovits/microsoft-ml-road-detections"
 PMTILES_NAME = "road-detections.pmtiles"
 
+# The glob is s3://, not https://, and that is deliberate. Expanding a glob
+# needs a listing, which plain HTTP does not provide: an https glob is sent
+# literally and 404s. PORTO-FMT-020 exempts `partition:glob` from the
+# https-only rule for exactly this reason. The bucket reads anonymously, so
+# this costs a consumer nothing but the path-style setting in AGENTS.md.
+PARTITION_GLOB = (
+    "s3://us-west-2.opendata.source.coop/nlebovits/microsoft-ml-road-detections"
+    "/road-detections/by_country/country=*/*.parquet"
+)
+
 # --------------------------------------------------------------------------
 # Prose. Every sentence here is quoted from Microsoft, cited to a source, or
 # measured from the data. See catalog/road-detections/README.md for the
@@ -53,11 +63,13 @@ DESCRIPTION = (
     "Each row is one road segment with an approximate width in metres. "
     "Coverage is worldwide except mainland China, Japan, and Korea, which Microsoft "
     "does not process, citing aerial imagery restrictions. "
-    "Read every partition at once with the glob "
-    "`https://data.source.coop/nlebovits/microsoft-ml-road-detections/road-detections/by_country/country=*/*.parquet`, "
-    "or one country by naming its directory. "
+    "Read one country over https by naming its directory, or every partition at once with the "
+    "`s3://` glob in `partition:glob`. The glob needs s3 rather than https because expanding it "
+    "requires a listing; the bucket itself reads anonymously. "
     "The partition key is Microsoft's own region code, which is close to but not the "
-    "same as ISO 3166-1 alpha-3; see [AGENTS.md](AGENTS.md) before joining on it."
+    "same as ISO 3166-1 alpha-3; see "
+    "[AGENTS.md](https://source.coop/nlebovits/microsoft-ml-road-detections/road-detections/AGENTS.md) "
+    "before joining on it."
 )
 
 KEYWORDS = [
@@ -375,9 +387,7 @@ def build() -> tuple[dict, list[str]]:
             }
         ],
         "partition:file_count": scan["file_count"],
-        "partition:glob": (
-            f"{PUBLIC_BASE}/road-detections/by_country/country=*/*.parquet"
-        ),
+        "partition:glob": PARTITION_GLOB,
         "table:row_count": scan["rows"],
         "table:primary_geometry": "geometry",
         "table:columns": table_columns(scan["schema"]),
